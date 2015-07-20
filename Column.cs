@@ -1,36 +1,48 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ddd_column
 {
-    public class Column : AggregateRoot
+    public class Column : EventSourcedAggregateRoot
     {
-        private string _name;
         private DataType _dataType;
         private bool _isPrimary;
-        private readonly IEventBus _bus;
 
-        public Column(IEventBus bus, Guid id, string name, DataType dataType)
-            : base(id)
+        public Column(Guid id, IEnumerable<IEvent> initialEvents)
+            : base(id, initialEvents) { }
+
+        public Column(Guid id, string name, DataType dataType)
+            : base(id, Enumerable.Empty<IEvent>())
         {
-            _bus = bus;
-            _name = name;
-            _dataType = dataType;
-            bus.Publish(new ColumnCreated(Id, _name, _dataType));
+            ApplyNew(new ColumnCreated(Id, name, dataType));
+        }
+
+        public void Apply(ColumnCreated @event)
+        {
+            _dataType = @event.Type;
         }
 
         public void Rename(string newName)
         {
-            _name = newName;
+            ApplyNew(new ColumnRenamed(Id, newName));
+        }
 
-            _bus.Publish(new ColumnRenamed(Id, newName));
+        public void Apply(ColumnRenamed @event)
+        {
         }
 
         public void ChangeDataType(DataType newDataType)
         {
-            _dataType = newDataType;
-            _isPrimary = false;
+            ApplyNew(new ColumnDataTypeChanged(Id, newDataType));
 
-            _bus.Publish(new ColumnDataTypeChanged(Id, newDataType));
+            if (_isPrimary)
+                ApplyNew(new ColumnPrimaryCleared(Id));
+        }
+
+        public void Apply(ColumnDataTypeChanged @event)
+        {
+            _dataType = @event.DataType;
         }
 
         public void MakePrimary()
@@ -38,15 +50,22 @@ namespace ddd_column
             if (_dataType == DataType.Date)
                 throw new InvalidOperationException("Dates cannot be primary keys");
 
-            _isPrimary = true;
+            ApplyNew(new ColumnMadePrimary(Id));
+        }
 
-            _bus.Publish(new ColumnMadePrimary(Id));
+        public void Apply(ColumnMadePrimary @event)
+        {
+            _isPrimary = true;
         }
 
         public void ClearPrimary()
         {
+            ApplyNew(new ColumnPrimaryCleared(Id));
+        }
+
+        public void Apply(ColumnPrimaryCleared @event)
+        {
             _isPrimary = false;
-            _bus.Publish(new ColumnPrimaryCleared(Id));
         }
     }
 }

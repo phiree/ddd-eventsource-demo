@@ -11,12 +11,4 @@ namespace ddd_column
 
         public Guid Id { get; private set; }
     }
-
-    public enum DataType
-    {
-        Number,
-        Text,
-        Date
-    }
-
 }

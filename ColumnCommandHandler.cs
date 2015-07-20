@@ -10,17 +10,15 @@ namespace ddd_column
         , ICommandHandler<ClearColumnPrimary>
     {
         private readonly IRepository<Column> _columnRepository;
-        private readonly IEventBus _bus;
 
-        public ColumnCommandHandler(IRepository<Column> columnRepository, IEventBus bus)
+        public ColumnCommandHandler(IRepository<Column> columnRepository)
         {
             _columnRepository = columnRepository;
-            _bus = bus;
         }
 
         public void Apply(CreateColumn createColumn)
         {
-            Column column = new Column(_bus, createColumn.Id, createColumn.Name, createColumn.DataType);
+            Column column = new Column(createColumn.Id, createColumn.Name, createColumn.DataType);
             _columnRepository.Save(column);
         }
 

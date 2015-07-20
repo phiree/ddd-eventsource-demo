@@ -46,9 +46,13 @@
     <Compile Include="Commands.cs" />
     <Compile Include="Column.cs" />
     <Compile Include="ColumnEvents.cs" />
+    <Compile Include="DataType.cs" />
     <Compile Include="EventBus.cs" />
     <Compile Include="Events.cs" />
     <Compile Include="AggregateRoot.cs" />
+    <Compile Include="EventSourcedAggregateRoot.cs" />
+    <Compile Include="EventSourcedRepository.cs" />
+    <Compile Include="EventStore.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="MemoryReadRepository.cs" />
     <Compile Include="Program.cs" />
