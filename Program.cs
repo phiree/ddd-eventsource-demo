@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 
 namespace ddd_column
 {
@@ -6,9 +7,14 @@ namespace ddd_column
     {
         private static IReadRepository<ColumnDTO> _readRepository;
         private static IEventStore _eventStore;
+        private static ILogger _log;
 
         static void Main(string[] args)
         {
+            _log = Log.Logger = new LoggerConfiguration()
+                .WriteTo.ColoredConsole()
+                .CreateLogger();
+
             EventBus bus = new EventBus();
             _eventStore = new MemoryEventStore(bus);
             EventSourcedRepository<Column> eventSourcedRepository = new EventSourcedRepository<Column>(((id, events) => new Column(id, events)), _eventStore);
@@ -16,6 +22,8 @@ namespace ddd_column
             ColumnCommandHandler commandHandler = new ColumnCommandHandler(eventSourcedRepository);
             _readRepository = new MemoryReadRepository<ColumnDTO>();
             ColumnView columnView = new ColumnView(_readRepository);
+
+            bus.Subscribe<IEvent>(ev => _log.Information("New Event: {@Event}", ev));
 
             bus.Subscribe<ColumnCreated>(columnView.Handle);
             bus.Subscribe<ColumnRenamed>(columnView.Handle);
@@ -60,10 +68,6 @@ namespace ddd_column
             });
 
             ShowReadModel(id);
-
-            Console.WriteLine("Events");
-            Console.WriteLine("------");
-            RenderEvents(id);
         }
 
         private static void ShowReadModel(Guid id)
