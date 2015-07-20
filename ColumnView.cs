@@ -36,7 +36,6 @@ namespace ddd_column
         {
             var column = _repository.Get(@event.Id);
             column.DataType = @event.DataType;
-            column.IsPrimary = false;
             _repository.Save(column);
         }
 

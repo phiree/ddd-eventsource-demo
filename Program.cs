@@ -43,26 +43,30 @@ namespace ddd_column
                     Name = "Column Name",
                     DataType = DataType.Text
                 });
-            ShowReadModel(id);
 
             commandHandler.Apply(new RenameColumn
                 {
                     Id = id,
                     Name = "New Column Name"
                 });
-            ShowReadModel(id);
 
             commandHandler.Apply(new MakeColumnPrimary
                 {
                     Id = id
                 });
-            ShowReadModel(id);
 
             commandHandler.Apply(new ChangeColumnDataType
                 {
                     Id = id,
                     DataType = DataType.Date
                 });
+
+            commandHandler.Apply(new ChangeColumnDataType
+            {
+                Id = id,
+                DataType = DataType.Number
+            });
+
             ShowReadModel(id);
         }
     }
