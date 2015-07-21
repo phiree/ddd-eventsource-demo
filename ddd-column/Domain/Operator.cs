@@ -4,7 +4,7 @@ namespace ddd_column.Domain
     {
         Add,
         Subtract,
-        Multiple,
+        Multiply,
         Divide
     }
 }

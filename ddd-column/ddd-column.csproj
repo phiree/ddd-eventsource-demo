@@ -57,6 +57,8 @@
     <Compile Include="Framework\IEventStore.cs" />
     <Compile Include="Framework\IKeyedObject.cs" />
     <Compile Include="Framework\IReadRepository.cs" />
+    <Compile Include="ReadModel\CalculationDTO.cs" />
+    <Compile Include="ReadModel\CalculationView.cs" />
     <Compile Include="ReadModel\ColumnDTO.cs" />
     <Compile Include="ReadModel\ColumnView.cs" />
     <Compile Include="Commands\ChangeColumnDataType.cs" />

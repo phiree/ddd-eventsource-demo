@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ddd_column.Domain;
 using ddd_column.Framework;
 
@@ -15,5 +16,7 @@ namespace ddd_column.ReadModel
         public string Name { get; set; }
         public DataType DataType { get; set; }
         public bool IsPrimary { get; set; }
+
+        public List<Guid> Calculations { get; set; } = new List<Guid>();
     }
 }

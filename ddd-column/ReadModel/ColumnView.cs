@@ -9,9 +9,10 @@ namespace ddd_column.ReadModel
         , IEventHandler<ColumnDataTypeChanged>
         , IEventHandler<ColumnMadePrimary>
         , IEventHandler<ColumnPrimaryCleared>
+        , IEventHandler<CalculationAdded>
+        , IEventHandler<CalculationRemoved>
     {
         private readonly IReadRepository<ColumnDTO> _repository;
-
         public ColumnView(IReadRepository<ColumnDTO> repository)
         {
             _repository = repository;
@@ -20,10 +21,10 @@ namespace ddd_column.ReadModel
         public void Handle(ColumnCreated @event)
         {
             _repository.Save(new ColumnDTO(@event.Id)
-                {
-                    Name = @event.Name,
-                    DataType = @event.Type
-                });
+            {
+                Name = @event.Name,
+                DataType = @event.Type
+            });
         }
 
         public void Handle(ColumnRenamed @event)
@@ -51,6 +52,20 @@ namespace ddd_column.ReadModel
         {
             var column = _repository.Get(@event.Id);
             column.IsPrimary = false;
+            _repository.Save(column);
+        }
+
+        public void Handle(CalculationAdded @event)
+        {
+            var column = _repository.Get(@event.Id);
+            column.Calculations.Add(@event.CalculationId);
+            _repository.Save(column);
+        }
+
+        public void Handle(CalculationRemoved @event)
+        {
+            var column = _repository.Get(@event.Id);
+            column.Calculations.Remove(@event.CalculationId);
             _repository.Save(column);
         }
     }

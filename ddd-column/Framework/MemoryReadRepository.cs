@@ -20,5 +20,10 @@ namespace ddd_column.Framework
         {
             _entities[entity.Id] = entity;
         }
+
+        public void Remove(Guid id)
+        {
+            _entities.Remove(id);
+        }
     }
 }

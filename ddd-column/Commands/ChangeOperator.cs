@@ -5,8 +5,8 @@ namespace ddd_column.Domain
 {
     public class ChangeOperator : ICommand
     {
-        public Guid Id { get; private set; }
-        public Guid CalculationId { get; private set; }
-        public Operator Operator { get; private set; }
+        public Guid Id { get;  set; }
+        public Guid CalculationId { get;  set; }
+        public Operator Operator { get;  set; }
     }
 }

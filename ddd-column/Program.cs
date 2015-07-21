@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using ddd_column.Commands;
 using ddd_column.Domain;
 using ddd_column.Events;
@@ -10,7 +11,8 @@ namespace ddd_column
 {
     class Program
     {
-        private static IReadRepository<ColumnDTO> _readRepository;
+        private static IReadRepository<ColumnDTO> _columnReadRepository;
+        private static IReadRepository<CalculationDTO> _calculationReadRepository;
         private static IEventStore _eventStore;
         private static ILogger _log;
 
@@ -25,8 +27,10 @@ namespace ddd_column
             EventSourcedRepository<Column> eventSourcedRepository = new EventSourcedRepository<Column>(((id, events) => new Column(id, events)), _eventStore);
 
             ColumnCommandHandler commandHandler = new ColumnCommandHandler(eventSourcedRepository);
-            _readRepository = new MemoryReadRepository<ColumnDTO>();
-            ColumnView columnView = new ColumnView(_readRepository);
+            _columnReadRepository = new MemoryReadRepository<ColumnDTO>();
+            _calculationReadRepository = new MemoryReadRepository<CalculationDTO>();
+            ColumnView columnView = new ColumnView(_columnReadRepository);
+            CalculationView calculationView = new CalculationView(_calculationReadRepository);
 
             bus.Subscribe<IEvent>(ev => _log.Information("New Event: {@Event}", ev));
 
@@ -35,6 +39,13 @@ namespace ddd_column
             bus.Subscribe<ColumnDataTypeChanged>(columnView.Handle);
             bus.Subscribe<ColumnMadePrimary>(columnView.Handle);
             bus.Subscribe<ColumnPrimaryCleared>(columnView.Handle);
+            bus.Subscribe<CalculationAdded>(columnView.Handle);
+            bus.Subscribe<CalculationRemoved>(columnView.Handle);
+
+            bus.Subscribe<CalculationAdded>(calculationView.Handle);
+            bus.Subscribe<CalculationRemoved>(calculationView.Handle);
+            bus.Subscribe<CalculationOperandChanged>(calculationView.Handle);
+            bus.Subscribe<CalculationOperatorChanged>(calculationView.Handle);
 
             PerformSomeActions(commandHandler);
         }
@@ -43,28 +54,28 @@ namespace ddd_column
         {
             Guid id = Guid.NewGuid();
             commandHandler.Apply(new CreateColumn
-                {
-                    Id = id,
-                    Name = "Column Name",
-                    DataType = DataType.Text
-                });
+            {
+                Id = id,
+                Name = "Column Name",
+                DataType = DataType.Text
+            });
 
             commandHandler.Apply(new RenameColumn
-                {
-                    Id = id,
-                    Name = "New Column Name"
-                });
+            {
+                Id = id,
+                Name = "New Column Name"
+            });
 
             commandHandler.Apply(new MakeColumnPrimary
-                {
-                    Id = id
-                });
+            {
+                Id = id
+            });
 
             commandHandler.Apply(new ChangeColumnDataType
-                {
-                    Id = id,
-                    DataType = DataType.Date
-                });
+            {
+                Id = id,
+                DataType = DataType.Date
+            });
 
             commandHandler.Apply(new ChangeColumnDataType
             {
@@ -72,13 +83,75 @@ namespace ddd_column
                 DataType = DataType.Number
             });
 
+            Guid calculationId = Guid.NewGuid();
+            commandHandler.Apply(new AddCalculation
+            {
+                Id = id,
+                CalculationId = calculationId,
+                Operator = Operator.Multiply,
+                Operand = 3
+            });
+
+            commandHandler.Apply(new ChangeOperand
+            {
+                Id = id,
+                CalculationId = calculationId,
+                Operand = 2
+            });
+
+            commandHandler.Apply(new ChangeOperator
+            {
+                Id = id,
+                CalculationId = calculationId,
+                Operator = Operator.Divide,
+            });
+
+            commandHandler.Apply(new AddCalculation
+            {
+                Id = id,
+                CalculationId = Guid.NewGuid(),
+                Operator = Operator.Multiply,
+                Operand = 3
+            });
+
+
+            commandHandler.Apply(new AddCalculation
+            {
+                Id = id,
+                CalculationId = Guid.NewGuid(),
+                Operator = Operator.Add,
+                Operand = 98
+            });
+
             ShowReadModel(id);
         }
 
         private static void ShowReadModel(Guid id)
         {
-            var column = _readRepository.Get(id);
-            Console.WriteLine("CREATE COLUMN `{0}` ({1}){2};", column.Name, column.DataType, column.IsPrimary ? " PRIMARY KEY" : "");
+            var column = _columnReadRepository.Get(id);
+            Console.WriteLine("SQL:");
+            Console.WriteLine("  CREATE COLUMN `{0}` ({1}){2};", column.Name, column.DataType, column.IsPrimary ? " PRIMARY KEY" : "");
+
+            if (column.Calculations.Any())
+            {
+                Console.WriteLine();
+                Console.WriteLine("Calculations:");
+                Console.Write("  Initial Value");
+
+                foreach (var calcId in column.Calculations)
+                {
+                    var calc = _calculationReadRepository.Get(calcId);
+                    var operatorAsString = calc.Operator == Operator.Add
+                        ? "+"
+                        : calc.Operator == Operator.Divide
+                            ? "/"
+                            : calc.Operator == Operator.Multiply
+                                ? "*"
+                                : "-";
+                    Console.Write(" {0} {1}", operatorAsString, calc.Operand);
+                }
+                Console.WriteLine();
+            }
         }
 
         private static void RenderEvents(Guid id)
