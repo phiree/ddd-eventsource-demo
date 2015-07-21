@@ -3,16 +3,10 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using ddd_column.Events;
 
-namespace ddd_column
+namespace ddd_column.Framework
 {
-    public interface IEventStore
-    {
-        IEnumerable<IEvent> EventsFor(Guid id);
-
-        void Save(Guid id, IEnumerable<IEvent> @events, int persistedVersion);
-    }
-
     public class MemoryEventStore : IEventStore
     {
         private readonly IEventBus _eventBus;

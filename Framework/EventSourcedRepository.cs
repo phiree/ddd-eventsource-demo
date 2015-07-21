@@ -1,16 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using ddd_column.Events;
 
-namespace ddd_column
+namespace ddd_column.Framework
 {
-    public interface IEventSourcedRepository<T> : IRepository<T>
-        where T : EventSourcedAggregateRoot
-    {
-    }
-
     public class EventSourcedRepository<T> : IEventSourcedRepository<T>
-        where T : EventSourcedAggregateRoot
+        where T : AggregateRoot
     {
         private readonly Func<Guid, IEnumerable<IEvent>, T> _create;
         private readonly IEventStore _eventStore;
@@ -29,7 +24,7 @@ namespace ddd_column
 
         public void Save(T aggregateRoot)
         {
-            IReadOnlyList<IEvent> events = aggregateRoot.UncommittedUncommitedEvents;
+            IReadOnlyList<IEvent> events = aggregateRoot.UncommitedEvents;
             _eventStore.Save(aggregateRoot.Id, events, aggregateRoot.CommittedVersion);
             aggregateRoot.Commit(aggregateRoot.CommittedVersion + events.Count);
         }

@@ -1,6 +1,7 @@
-using System;
+using ddd_column.Commands;
+using ddd_column.Framework;
 
-namespace ddd_column
+namespace ddd_column.Domain
 {
     public class ColumnCommandHandler
         : ICommandHandler<CreateColumn>
@@ -8,10 +9,14 @@ namespace ddd_column
         , ICommandHandler<ChangeColumnDataType>
         , ICommandHandler<MakeColumnPrimary>
         , ICommandHandler<ClearColumnPrimary>
+        , ICommandHandler<AddCalculation>
+        , ICommandHandler<RemoveCalculation>
+        , ICommandHandler<ChangeOperator>
+        , ICommandHandler<ChangeOperand>
     {
-        private readonly IRepository<Column> _columnRepository;
+        private readonly IEventSourcedRepository<Column> _columnRepository;
 
-        public ColumnCommandHandler(IRepository<Column> columnRepository)
+        public ColumnCommandHandler(IEventSourcedRepository<Column> columnRepository)
         {
             _columnRepository = columnRepository;
         }
@@ -47,6 +52,34 @@ namespace ddd_column
         {
             Column column = _columnRepository.Get(command.Id);
             column.ClearPrimary();
+            _columnRepository.Save(column);
+        }
+
+        public void Apply(AddCalculation command)
+        {
+            Column column = _columnRepository.Get(command.Id);
+            column.AddCalculation(command.CalculationId, command.Operator, command.Operand);
+            _columnRepository.Save(column);
+        }
+
+        public void Apply(RemoveCalculation command)
+        {
+            Column column = _columnRepository.Get(command.Id);
+            column.RemoveCalculation(command.CalculationId);
+            _columnRepository.Save(column);
+        }
+
+        public void Apply(ChangeOperator command)
+        {
+            Column column = _columnRepository.Get(command.Id);
+            column.ChangeOperator(command.CalculationId, command.Operator);
+            _columnRepository.Save(column);
+        }
+
+        public void Apply(ChangeOperand command)
+        {
+            Column column = _columnRepository.Get(command.Id);
+            column.ChangeOperand(command.CalculationId, command.Operand);
             _columnRepository.Save(column);
         }
     }

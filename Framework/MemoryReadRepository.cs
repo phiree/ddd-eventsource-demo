@@ -1,20 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ddd_column
+namespace ddd_column.Framework
 {
-    public interface IKeyedObject
-    {
-        Guid Id { get; }
-    }
-
-    public interface IReadRepository<T>
-        where T : IKeyedObject
-    {
-        T Get(Guid id);
-        void Save(T entity);
-    }
-
     public class MemoryReadRepository<T> : IReadRepository<T>
         where T : IKeyedObject
     {

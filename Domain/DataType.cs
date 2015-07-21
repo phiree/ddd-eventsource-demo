@@ -1,4 +1,4 @@
-﻿namespace ddd_column
+﻿namespace ddd_column.Domain
 {
     public enum DataType
     {
