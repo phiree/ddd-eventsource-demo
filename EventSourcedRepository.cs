@@ -27,11 +27,11 @@ namespace ddd_column
             return _create(id, events);
         }
 
-        public void Save(T entity)
+        public void Save(T aggregateRoot)
         {
-            IReadOnlyList<IEvent> events = entity.UncommittedEvents;
-            _eventStore.Save(entity.Id, events, entity.CommittedVersion);
-            entity.Commit(entity.CommittedVersion + events.Count);
+            IReadOnlyList<IEvent> events = aggregateRoot.UncommittedUncommitedEvents;
+            _eventStore.Save(aggregateRoot.Id, events, aggregateRoot.CommittedVersion);
+            aggregateRoot.Commit(aggregateRoot.CommittedVersion + events.Count);
         }
     }
 }

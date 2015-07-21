@@ -59,6 +59,7 @@
     <Compile Include="EventSourcedAggregateRoot.cs" />
     <Compile Include="EventSourcedRepository.cs" />
     <Compile Include="EventStore.cs" />
+    <Compile Include="IEventOwner.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="MemoryReadRepository.cs" />
     <Compile Include="Program.cs" />

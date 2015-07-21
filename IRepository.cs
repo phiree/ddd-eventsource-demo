@@ -7,7 +7,7 @@ namespace ddd_column
         where T : AggregateRoot
     {
         T Get(Guid id);
-        void Save(T entity);
+        void Save(T aggregateRoot);
     }
 
     public class MemoryRepository<T> : IRepository<T>
@@ -23,9 +23,9 @@ namespace ddd_column
             return _entities[id];
         }
 
-        public void Save(T entity)
+        public void Save(T aggregateRoot)
         {
-            _entities[entity.Id] = entity;
+            _entities[aggregateRoot.Id] = aggregateRoot;
         }
     }
 
@@ -48,11 +48,11 @@ namespace ddd_column
             return entity;
         }
 
-        public void Save(T entity)
+        public void Save(T aggregateRoot)
         {
             try
             {
-                _repository.Save(entity);
+                _repository.Save(aggregateRoot);
                 _bus.Commit();
             }
             catch (Exception)

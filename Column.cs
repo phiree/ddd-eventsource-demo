@@ -4,7 +4,13 @@ using System.Linq;
 
 namespace ddd_column
 {
-    public class Column : EventSourcedAggregateRoot
+    public class Column
+        : EventSourcedAggregateRoot
+        , IEventOwner<ColumnCreated>
+        , IEventOwner<ColumnRenamed>
+        , IEventOwner<ColumnPrimaryCleared>
+        , IEventOwner<ColumnMadePrimary>
+        , IEventOwner<ColumnDataTypeChanged>
     {
         private DataType _dataType;
         private bool _isPrimary;
@@ -15,7 +21,7 @@ namespace ddd_column
         public Column(Guid id, string name, DataType dataType)
             : base(id, Enumerable.Empty<IEvent>())
         {
-            ApplyNew(new ColumnCreated(Id, name, dataType));
+            ApplyNew(this, new ColumnCreated(Id, name, dataType));
         }
 
         public void Apply(ColumnCreated @event)
@@ -25,7 +31,7 @@ namespace ddd_column
 
         public void Rename(string newName)
         {
-            ApplyNew(new ColumnRenamed(Id, newName));
+            ApplyNew(this, new ColumnRenamed(Id, newName));
         }
 
         public void Apply(ColumnRenamed @event)
@@ -34,10 +40,10 @@ namespace ddd_column
 
         public void ChangeDataType(DataType newDataType)
         {
-            ApplyNew(new ColumnDataTypeChanged(Id, newDataType));
+            ApplyNew(this, new ColumnDataTypeChanged(Id, newDataType));
 
             if (_isPrimary)
-                ApplyNew(new ColumnPrimaryCleared(Id));
+                ApplyNew(this, new ColumnPrimaryCleared(Id));
         }
 
         public void Apply(ColumnDataTypeChanged @event)
@@ -50,7 +56,7 @@ namespace ddd_column
             if (_dataType == DataType.Date)
                 throw new InvalidOperationException("Dates cannot be primary keys");
 
-            ApplyNew(new ColumnMadePrimary(Id));
+            ApplyNew(this, new ColumnMadePrimary(Id));
         }
 
         public void Apply(ColumnMadePrimary @event)
@@ -60,7 +66,7 @@ namespace ddd_column
 
         public void ClearPrimary()
         {
-            ApplyNew(new ColumnPrimaryCleared(Id));
+            ApplyNew(this, new ColumnPrimaryCleared(Id));
         }
 
         public void Apply(ColumnPrimaryCleared @event)

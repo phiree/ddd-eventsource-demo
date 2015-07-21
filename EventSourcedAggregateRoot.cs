@@ -14,18 +14,18 @@ namespace ddd_column
                 ApplyExisting(e);
         }
 
-        private readonly List<IEvent> _events = new List<IEvent>();
-        public IReadOnlyList<IEvent> UncommittedEvents
+        private readonly List<IEvent> _uncommitedEvents = new List<IEvent>();
+        public IReadOnlyList<IEvent> UncommittedUncommitedEvents
         {
-            get { return _events; }
+            get { return _uncommitedEvents; }
         }
 
         public void Commit(int newVersion)
         {
-            if (newVersion != UncommittedEvents.Count + CommittedVersion)
+            if (newVersion != UncommittedUncommitedEvents.Count + CommittedVersion)
                 throw new InvalidOperationException("Should never happen");
 
-            _events.Clear();
+            _uncommitedEvents.Clear();
             CommittedVersion = newVersion;
         }
 
@@ -35,10 +35,10 @@ namespace ddd_column
             CommittedVersion++;
         }
 
-        protected void ApplyNew(IEvent @event)
+        protected void ApplyNew<TEventOwner, T>(TEventOwner owner, T @event) where TEventOwner : IEventOwner<T> where T : IEvent
         {
-            ((dynamic)this).Apply((dynamic)@event);
-            _events.Add(@event);
+            owner.Apply(@event);
+            _uncommitedEvents.Add(@event);
         }
     }
 }
