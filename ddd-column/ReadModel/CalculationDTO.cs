@@ -6,7 +6,8 @@ namespace ddd_column.ReadModel
 {
     public class CalculationDTO : IKeyedObject
     {
-        public Guid Id { get; }
+        public Guid Id { get; private set; }
+
         public CalculationDTO(Guid id)
         {
             Id = id;

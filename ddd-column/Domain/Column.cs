@@ -20,6 +20,7 @@ namespace ddd_column.Domain
     {
         private DataType _dataType;
         private bool _isPrimary;
+        private readonly CalculationCollection _calculations = new CalculationCollection();
 
         public Column(Guid id, IEnumerable<IEvent> initialEvents)
             : base(id, initialEvents) { }
@@ -88,12 +89,15 @@ namespace ddd_column.Domain
             if (_dataType != DataType.Number)
                 throw new InvalidOperationException("Can only add calculations to numeric columns");
 
+            if (op == Operator.Divide && operand == 0)
+                throw new InvalidOperationException("Cannot divide by zero in a calculation");
+
             ApplyNew(this, new CalculationAdded(Id, calculationId, op, operand));
         }
 
         public void Apply(CalculationAdded @event)
         {
-            _calculations.Add(new Calculation(this, @event.CalculationId));
+            _calculations.Add(new Calculation(this, @event.CalculationId, @event));
         }
 
         public void RemoveCalculation(Guid calculationId)
@@ -106,10 +110,14 @@ namespace ddd_column.Domain
             _calculations.Remove(@event.CalculationId);
         }
 
-        private readonly CalculationCollection _calculations = new CalculationCollection();
         public void ChangeOperator(Guid calculationId, Operator op)
         {
-            _calculations[calculationId].ChangeOperator(op);
+            Calculation calculation = _calculations[calculationId];
+
+            if (op == Operator.Divide && calculation.Operand == 0)
+                throw new InvalidOperationException("Cannot divide by zero in a calculation");
+
+            calculation.ChangeOperator(op);
         }
 
         public void Apply(CalculationOperatorChanged @event)
@@ -119,7 +127,11 @@ namespace ddd_column.Domain
 
         public void ChangeOperand(Guid calculationId, double operand)
         {
-            _calculations[calculationId].ChangeOperand(operand);
+            Calculation calculation = _calculations[calculationId];
+            if (calculation.Operator == Operator.Divide && operand == 0)
+                throw new InvalidOperationException("Cannot divide by zero in a calculation");
+
+            calculation.ChangeOperand(operand);
         }
 
         public void Apply(CalculationOperandChanged @event)

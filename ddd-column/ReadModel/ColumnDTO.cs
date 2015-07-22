@@ -10,6 +10,7 @@ namespace ddd_column.ReadModel
         public ColumnDTO(Guid id)
         {
             Id = id;
+            Calculations = new List<Guid>();
         }
 
         public Guid Id { get; private set; }
@@ -17,6 +18,6 @@ namespace ddd_column.ReadModel
         public DataType DataType { get; set; }
         public bool IsPrimary { get; set; }
 
-        public List<Guid> Calculations { get; set; } = new List<Guid>();
+        public List<Guid> Calculations { get; set; }
     }
 }

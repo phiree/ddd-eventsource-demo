@@ -8,10 +8,20 @@ namespace ddd_column.Domain
         public Guid Id { get; private set; }
         private readonly Column _column;
 
-        public Calculation(Column column, Guid id)
+        public double Operand { get; private set; }
+        public Operator Operator { get; private set; }
+
+        public Calculation(Column column, Guid id, CalculationAdded @event)
         {
             Id = id;
             _column = column;
+            Apply(@event);
+        }
+
+        public void Apply(CalculationAdded @event)
+        {
+            Operand = @event.Operand;
+            Operator = @event.Operator;
         }
 
         public void ChangeOperator(Operator @operator)
@@ -21,6 +31,7 @@ namespace ddd_column.Domain
 
         public void Apply(CalculationOperatorChanged @event)
         {
+            Operator = @event.Operator;
         }
 
         public void ChangeOperand(double operand)
@@ -30,6 +41,7 @@ namespace ddd_column.Domain
 
         public void Apply(CalculationOperandChanged @event)
         {
+            Operand = @event.Operand;
         }
     }
 }
