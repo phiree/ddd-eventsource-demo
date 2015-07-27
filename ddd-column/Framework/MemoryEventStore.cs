@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using ddd_column.Events;
 
 namespace ddd_column.Framework
@@ -22,7 +21,7 @@ namespace ddd_column.Framework
         {
             AppendOnlyList<IEvent> events;
             if (_events.TryGetValue(id, out events))
-                return events.Skip(fromVersion);
+                return events.GetFrom(fromVersion);
 
             if (fromVersion != 0)
                 throw new IndexOutOfRangeException();
@@ -52,6 +51,12 @@ namespace ddd_column.Framework
                     throw new DBConcurrencyException();
 
                 _storage.Add(entity);
+            }
+
+            public IEnumerable<T> GetFrom(int index)
+            {
+                for (var i = index; i < _storage.Count; i++)
+                    yield return _storage[i];
             }
 
             public IEnumerator<T> GetEnumerator()
