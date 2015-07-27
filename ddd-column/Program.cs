@@ -32,7 +32,7 @@ namespace ddd_column
             ColumnView columnView = new ColumnView(_columnReadRepository);
             CalculationView calculationView = new CalculationView(_calculationReadRepository);
 
-            bus.Subscribe<IEvent>(ev => _log.Information("New Event: {@Event}", ev));
+            //bus.Subscribe<IEvent>(ev => _log.Information("New Event: {@Event}", ev));
 
             bus.Subscribe<ColumnCreated>(columnView.Handle);
             bus.Subscribe<ColumnRenamed>(columnView.Handle);
@@ -48,6 +48,25 @@ namespace ddd_column
             bus.Subscribe<CalculationOperatorChanged>(calculationView.Handle);
 
             PerformSomeActions(commandHandler);
+            ShowReadModel();
+
+            PerformLotsOfActions(commandHandler);
+        }
+
+        private static int _commandsPerBatch = 5000;
+        private static int _columnCount = 1000;
+
+        public static void PerformLotsOfActions(ColumnCommandHandler commandHandler)
+        {
+            var randomRunner = new RandomCommandRunner(Enumerable.Range(1, _columnCount).Select(i => Some.Guid()), commandHandler);
+
+            for (var i = 0; i < 20; i++)
+            {
+                var results = randomRunner.RunSomeCommands(_commandsPerBatch);
+                Console.WriteLine("{0} commands: {1} succeeded, {2} failed", results.Total, results.SuccessCount, results.FailureCount);
+                Console.WriteLine("  {0} commands per second", results.CommandsPerSecond);
+                Console.WriteLine();
+            }
         }
 
         private static void PerformSomeActions(ColumnCommandHandler commandHandler)
@@ -122,35 +141,38 @@ namespace ddd_column
                 Operator = Operator.Add,
                 Operand = 98
             });
-
-            ShowReadModel(id);
         }
 
-        private static void ShowReadModel(Guid id)
+        private static void ShowReadModel()
         {
-            var column = _columnReadRepository.Get(id);
-            Console.WriteLine("SQL:");
-            Console.WriteLine("  CREATE COLUMN `{0}` ({1}){2};", column.Name, column.DataType, column.IsPrimary ? " PRIMARY KEY" : "");
-
-            if (column.Calculations.Any())
+            foreach (var column in _columnReadRepository.All.ToList())
             {
-                Console.WriteLine();
-                Console.WriteLine("Calculations:");
-                Console.Write("  Initial Value");
+                Console.WriteLine("SQL for {0}", column.Id);
+                Console.WriteLine("  CREATE COLUMN `{0}` ({1}){2};", column.Name, column.DataType, column.IsPrimary
+                    ? " PRIMARY KEY"
+                    : "");
 
-                foreach (var calcId in column.Calculations)
+                var calculations = column.Calculations.ToList();
+                if (calculations.Any())
                 {
-                    var calc = _calculationReadRepository.Get(calcId);
-                    var operatorAsString = calc.Operator == Operator.Add
-                        ? "+"
-                        : calc.Operator == Operator.Divide
-                            ? "/"
-                            : calc.Operator == Operator.Multiply
-                                ? "*"
-                                : "-";
-                    Console.Write(" {0} {1}", operatorAsString, calc.Operand);
+                    Console.WriteLine();
+                    Console.WriteLine("Calculations:");
+                    Console.Write("  Initial Value");
+
+                    foreach (var calcId in calculations.ToList())
+                    {
+                        var calc = _calculationReadRepository.Get(calcId);
+                        var operatorAsString = calc.Operator == Operator.Add
+                            ? "+"
+                            : calc.Operator == Operator.Divide
+                                ? "/"
+                                : calc.Operator == Operator.Multiply
+                                    ? "*"
+                                    : "-";
+                        Console.Write(" {0} {1}", operatorAsString, calc.Operand);
+                    }
+                    Console.WriteLine();
                 }
-                Console.WriteLine();
             }
         }
 

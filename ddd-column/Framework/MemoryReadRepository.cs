@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ddd_column.Framework
 {
     public class MemoryReadRepository<T> : IReadRepository<T>
         where T : IKeyedObject
     {
-        private readonly Dictionary<Guid, T> _entities = new Dictionary<Guid, T>();
+        private readonly ConcurrentDictionary<Guid, T> _entities = new ConcurrentDictionary<Guid, T>();
+
+        public IEnumerable<T> All
+        {
+            get { return _entities.Values.ToList(); }
+        }
 
         public T Get(Guid id)
         {
@@ -23,7 +30,8 @@ namespace ddd_column.Framework
 
         public void Remove(Guid id)
         {
-            _entities.Remove(id);
+            T entity;
+            _entities.TryRemove(id, out entity);
         }
     }
 }
