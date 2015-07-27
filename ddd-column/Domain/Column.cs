@@ -154,8 +154,18 @@ namespace ddd_column.Domain
                 {
                     DataType = column._dataType,
                     IsPrimary = column._isPrimary,
-                    Calculations = column._calculations.ToList()
+                    Calculations = column._calculations.Select(CalculationSnapshot).ToList()
                 };
+            }
+
+            private static CalculationSnapshot CalculationSnapshot(Calculation calculation)
+            {
+                return new CalculationSnapshot
+                    {
+                        Id = calculation.Id,
+                        Operand = calculation.Operand,
+                        Operator = calculation.Operator
+                    };
             }
 
             public Column FromSnapshot(ColumnSnapshot snapshot)
@@ -166,7 +176,8 @@ namespace ddd_column.Domain
                     _dataType = snapshot.DataType
                 };
 
-                column._calculations = ImmutableKeyedCollection<Guid, Calculation>.Create(item => item.Id, snapshot.Calculations);
+                List<Calculation> calculations = snapshot.Calculations.Select(c => Calculation.FromSnapshot(column, c)).ToList();
+                column._calculations = ImmutableKeyedCollection<Guid, Calculation>.Create(item => item.Id, calculations);
 
                 column.Commit(snapshot.Version);
 
@@ -188,11 +199,18 @@ namespace ddd_column.Domain
 
         public bool IsPrimary { get; set; }
 
-        public List<Calculation> Calculations { get; set; }
+        public List<CalculationSnapshot> Calculations { get; set; }
 
         public Guid Id { get; private set; }
 
         public int Version { get; private set; }
         public int SchemaVersion { get; private set; }
+    }
+
+    public class CalculationSnapshot
+    {
+        public Guid Id { get; set; }
+        public Operator Operator { get; set; }
+        public double Operand { get; set; }
     }
 }

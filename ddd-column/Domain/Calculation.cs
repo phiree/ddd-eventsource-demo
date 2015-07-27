@@ -5,11 +5,19 @@ namespace ddd_column.Domain
 {
     public class Calculation
     {
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
         private readonly Column _column;
 
         public double Operand { get; private set; }
         public Operator Operator { get; private set; }
+
+        private Calculation(Column column, Guid id, double operand, Operator @operator)
+        {
+            _column = column;
+            Id = id;
+            Operand = operand;
+            Operator = @operator;
+        }
 
         public Calculation(Column column, Guid id, CalculationAdded @event)
         {
@@ -42,6 +50,11 @@ namespace ddd_column.Domain
         public void Apply(CalculationOperandChanged @event)
         {
             Operand = @event.Operand;
+        }
+
+        public static Calculation FromSnapshot(Column column, CalculationSnapshot snapshot)
+        {
+            return new Calculation(column, snapshot.Id, snapshot.Operand, snapshot.Operator);
         }
     }
 }

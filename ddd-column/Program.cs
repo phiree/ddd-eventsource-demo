@@ -16,9 +16,11 @@ namespace ddd_column
         private static IReadRepository<CalculationDTO> _calculationReadRepository;
         private static IEventStore _eventStore;
 
-        private const int CommandsPerProfileBatch = 5000;
+        private const int CommandsPerProfileBatch = 2000;
         private const int ColumnCount = 100;
         private const int NumProfileIterations = 50;
+
+        private const bool UseSnapshotting = false;
         private const int EventsPerSnapshot = 10;
 
         static void Main(string[] args)
@@ -26,9 +28,9 @@ namespace ddd_column
             EventBus bus = new EventBus();
             _eventStore = new MemoryEventStore(bus);
 
-            IEventSourcedRepository<Column> eventSourcedRepository = true
-                ? CreateNonSnapshottingRepository()
-                : CreateSnapshottingRepository(EventsPerSnapshot);
+            IEventSourcedRepository<Column> eventSourcedRepository = UseSnapshotting
+                ? CreateSnapshottingRepository(EventsPerSnapshot)
+                : CreateNonSnapshottingRepository();
 
             ColumnCommandHandler commandHandler = new ColumnCommandHandler(eventSourcedRepository);
             _columnReadRepository = new MemoryReadRepository<ColumnDTO>();
@@ -45,7 +47,7 @@ namespace ddd_column
             bus.Subscribe<ColumnPrimaryCleared>(columnView.Handle);
             bus.Subscribe<CalculationAdded>(columnView.Handle);
             bus.Subscribe<CalculationRemoved>(columnView.Handle);
-
+            
             bus.Subscribe<CalculationAdded>(calculationView.Handle);
             bus.Subscribe<CalculationRemoved>(calculationView.Handle);
             bus.Subscribe<CalculationOperandChanged>(calculationView.Handle);

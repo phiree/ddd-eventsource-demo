@@ -3,14 +3,16 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using ddd_column.Events;
+using Newtonsoft.Json;
 
 namespace ddd_column.Framework
 {
     public class MemoryEventStore : IEventStore
     {
         private readonly IEventBus _eventBus;
-        private readonly ConcurrentDictionary<Guid, AppendOnlyList<IEvent>> _events = new ConcurrentDictionary<Guid, AppendOnlyList<IEvent>>();
+        private readonly ConcurrentDictionary<Guid, AppendOnlyList<string>> _events = new ConcurrentDictionary<Guid, AppendOnlyList<string>>();
 
         public MemoryEventStore(IEventBus eventBus)
         {
@@ -19,9 +21,9 @@ namespace ddd_column.Framework
 
         public IEnumerable<IEvent> EventsFor(Guid id, int fromVersion)
         {
-            AppendOnlyList<IEvent> events;
-            if (_events.TryGetValue(id, out events))
-                return events.GetFrom(fromVersion);
+            AppendOnlyList<string> serializedEvents;
+            if (_events.TryGetValue(id, out serializedEvents))
+                return serializedEvents.GetFrom(fromVersion).Select(DeserializeEvent);
 
             if (fromVersion != 0)
                 throw new IndexOutOfRangeException();
@@ -31,15 +33,30 @@ namespace ddd_column.Framework
 
         public void Save(Guid id, IEnumerable<IEvent> events, int persistedVersion)
         {
-            AppendOnlyList<IEvent> items = _events.GetOrAdd(id, _ => new AppendOnlyList<IEvent>());
+            AppendOnlyList<string> items = _events.GetOrAdd(id, _ => new AppendOnlyList<string>());
 
             // FIXME: Unit of work pattern
             foreach (var @event in events)
             {
-                items.Append(++persistedVersion, @event);
+                items.Append(++persistedVersion, SerializeEvent(@event));
                 _eventBus.Publish(@event);
             }
         }
+
+        private static string SerializeEvent(IEvent @event)
+        {
+            return JsonConvert.SerializeObject(@event, SerializationSettings);
+        }
+        
+        private static IEvent DeserializeEvent(string json)
+        {
+            return JsonConvert.DeserializeObject<IEvent>(json, SerializationSettings);
+        }
+
+        private static JsonSerializerSettings SerializationSettings => new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Objects
+            };
 
         private class AppendOnlyList<T> : IEnumerable<T>
         {
