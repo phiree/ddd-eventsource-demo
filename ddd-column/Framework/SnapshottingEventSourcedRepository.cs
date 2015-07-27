@@ -4,13 +4,13 @@ using ddd_column.Events;
 
 namespace ddd_column.Framework
 {
-    public interface ISnapshotter<T, TCasted>
-        where TCasted : ISnapshot<T>
+    public interface ISnapshotter<T, TSnapshot>
+        where TSnapshot : ISnapshot<T>
         where T : AggregateRoot
     {
         int SchemaVersion { get; }
-        TCasted TakeSnapshot(T column);
-        T FromSnapshot(TCasted snapshot);
+        TSnapshot TakeSnapshot(T column);
+        T FromSnapshot(TSnapshot snapshot);
     }
 
     public interface ISnapshot<out T> : IKeyedObject
