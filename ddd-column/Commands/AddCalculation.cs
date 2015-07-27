@@ -1,7 +1,7 @@
 using System;
-using ddd_column.Commands;
+using ddd_column.Domain;
 
-namespace ddd_column.Domain
+namespace ddd_column.Commands
 {
     public class AddCalculation : ICommand
     {

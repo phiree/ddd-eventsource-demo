@@ -18,8 +18,7 @@ namespace ddd_column.Framework
                         // Poor man's "check if obs implements the right handler
                         try
                         {
-                            _observers.Add(ev => obs((dynamic)ev));
-                            //obs((dynamic)@event);
+                            obs((dynamic)@event);
                         }
                         catch (Exception) { }
                     }
@@ -29,6 +28,7 @@ namespace ddd_column.Framework
         public void Subscribe<T>(Action<T> onAction)
             where T : IEvent
         {
+            _observers.Add(ev => onAction(ev));
         }
     }
 }

@@ -12,6 +12,21 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -59,13 +74,17 @@
     <Compile Include="Commands\AddCalculation.cs" />
     <Compile Include="Commands\ChangeOperand.cs" />
     <Compile Include="Commands\ChangeOperator.cs" />
+    <Compile Include="Domain\CalculationSnapshot.cs" />
     <Compile Include="Domain\ColumnCommandHandler.cs" />
     <Compile Include="Commands\RemoveCalculation.cs" />
+    <Compile Include="Domain\ColumnSnapshot.cs" />
     <Compile Include="Framework\IEventBus.cs" />
     <Compile Include="Framework\IEventSourcedRepository.cs" />
     <Compile Include="Framework\IEventStore.cs" />
     <Compile Include="Framework\IKeyedObject.cs" />
-    <Compile Include="Framework\IReadRepository.cs" />
+    <Compile Include="Framework\IRepository.cs" />
+    <Compile Include="Framework\ISnapshot.cs" />
+    <Compile Include="Framework\ISnapshotter.cs" />
     <Compile Include="Framework\SnapshottingEventSourcedRepository.cs" />
     <Compile Include="Framework\Some.cs" />
     <Compile Include="RandomCommandRunner.cs" />
@@ -81,7 +100,7 @@
     <Compile Include="Commands\MakeColumnPrimary.cs" />
     <Compile Include="Commands\RenameColumn.cs" />
     <Compile Include="Domain\Calculation.cs" />
-    <Compile Include="Domain\ImmutableKeyedCollection.cs" />
+    <Compile Include="Framework\ImmutableKeyedCollection.cs" />
     <Compile Include="Domain\Column.cs" />
     <Compile Include="Events\ColumnDataTypeChanged.cs" />
     <Compile Include="Events\ColumnCreated.cs" />
@@ -100,7 +119,7 @@
     <Compile Include="Framework\MemoryEventStore.cs" />
     <Compile Include="Events\IEvent.cs" />
     <Compile Include="Framework\IEventSource.cs" />
-    <Compile Include="Framework\MemoryReadRepository.cs" />
+    <Compile Include="Framework\MemoryRepository.cs" />
     <Compile Include="Domain\Operator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -108,6 +127,18 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -11,6 +11,11 @@ namespace ddd_column.Domain
         public double Operand { get; private set; }
         public Operator Operator { get; private set; }
 
+        public static Calculation FromSnapshot(Column column, CalculationSnapshot snapshot)
+        {
+            return new Calculation(column, snapshot.Id, snapshot.Operand, snapshot.Operator);
+        }
+
         private Calculation(Column column, Guid id, double operand, Operator @operator)
         {
             _column = column;
@@ -50,11 +55,6 @@ namespace ddd_column.Domain
         public void Apply(CalculationOperandChanged @event)
         {
             Operand = @event.Operand;
-        }
-
-        public static Calculation FromSnapshot(Column column, CalculationSnapshot snapshot)
-        {
-            return new Calculation(column, snapshot.Id, snapshot.Operand, snapshot.Operator);
         }
     }
 }

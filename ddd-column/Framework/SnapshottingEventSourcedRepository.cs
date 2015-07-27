@@ -4,33 +4,17 @@ using ddd_column.Events;
 
 namespace ddd_column.Framework
 {
-    public interface ISnapshotter<T, TSnapshot>
-        where TSnapshot : ISnapshot<T>
-        where T : AggregateRoot
-    {
-        int SchemaVersion { get; }
-        TSnapshot TakeSnapshot(T column);
-        T FromSnapshot(TSnapshot snapshot);
-    }
-
-    public interface ISnapshot<out T> : IKeyedObject
-        where T : AggregateRoot
-    {
-        int Version { get; }
-        int SchemaVersion { get; }
-    }
-
     public class SnapshottingEventSourcedRepository<T, TSnapshot> : IEventSourcedRepository<T>
         where TSnapshot : ISnapshot<T>
         where T : AggregateRoot
     {
         private readonly Func<Guid, IEnumerable<IEvent>, T> _create;
         private readonly IEventStore _eventStore;
-        private readonly IReadRepository<TSnapshot> _snapshotRepository;
+        private readonly IRepository<TSnapshot> _snapshotRepository;
         private readonly ISnapshotter<T, TSnapshot> _snapshotter;
         private readonly int _eventsPerSnapshot;
 
-        public SnapshottingEventSourcedRepository(Func<Guid, IEnumerable<IEvent>, T> create, IEventStore eventStore, IReadRepository<TSnapshot> snapshotRepository, ISnapshotter<T, TSnapshot> snapshotter, int eventsPerSnapshot)
+        public SnapshottingEventSourcedRepository(Func<Guid, IEnumerable<IEvent>, T> create, IEventStore eventStore, IRepository<TSnapshot> snapshotRepository, ISnapshotter<T, TSnapshot> snapshotter, int eventsPerSnapshot)
         {
             _create = create;
             _eventStore = eventStore;

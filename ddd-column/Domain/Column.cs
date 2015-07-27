@@ -185,32 +185,4 @@ namespace ddd_column.Domain
             }
         }
     }
-
-    public class ColumnSnapshot : ISnapshot<Column>
-    {
-        public ColumnSnapshot(Guid id, int version, int schemaVersion)
-        {
-            Id = id;
-            Version = version;
-            SchemaVersion = schemaVersion;
-        }
-
-        public DataType DataType { get; set; }
-
-        public bool IsPrimary { get; set; }
-
-        public List<CalculationSnapshot> Calculations { get; set; }
-
-        public Guid Id { get; private set; }
-
-        public int Version { get; private set; }
-        public int SchemaVersion { get; private set; }
-    }
-
-    public class CalculationSnapshot
-    {
-        public Guid Id { get; set; }
-        public Operator Operator { get; set; }
-        public double Operand { get; set; }
-    }
 }

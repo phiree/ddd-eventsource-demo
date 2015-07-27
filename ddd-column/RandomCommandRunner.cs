@@ -41,10 +41,10 @@ namespace ddd_column
     {
         private readonly Dictionary<Guid, bool> _potentialColumns;
         private readonly ColumnCommandHandler _columnCommandHandler;
-        private readonly IReadRepository<ColumnDTO> _columnRepository;
+        private readonly IRepository<ColumnDTO> _columnRepository;
         private readonly IReadOnlyList<Func<Guid, ICommand>> _commandFactories;
 
-        public RandomCommandRunner(IEnumerable<Guid> potentialColumnIds, ColumnCommandHandler columnCommandHandler, IReadRepository<ColumnDTO> columnRepository)
+        public RandomCommandRunner(IEnumerable<Guid> potentialColumnIds, ColumnCommandHandler columnCommandHandler, IRepository<ColumnDTO> columnRepository)
         {
             _potentialColumns = potentialColumnIds.ToDictionary(id => id, id => false);
             _columnCommandHandler = columnCommandHandler;

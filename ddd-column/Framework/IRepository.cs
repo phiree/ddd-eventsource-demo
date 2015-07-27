@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ddd_column.Framework
 {
-    public interface IReadRepository<T>
+    public interface IRepository<T>
         where T : IKeyedObject
     {
         IEnumerable<T> All { get; }

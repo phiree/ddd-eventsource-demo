@@ -9,8 +9,8 @@ namespace ddd_column.ReadModel
             , IEventHandler<CalculationOperandChanged>
             , IEventHandler<CalculationOperatorChanged>
     {
-        private readonly IReadRepository<CalculationDTO> _repository;
-        public CalculationView(IReadRepository<CalculationDTO> repository)
+        private readonly IRepository<CalculationDTO> _repository;
+        public CalculationView(IRepository<CalculationDTO> repository)
         {
             _repository = repository;
         }

@@ -1,7 +1,6 @@
 using System;
-using ddd_column.Commands;
 
-namespace ddd_column.Domain
+namespace ddd_column.Commands
 {
     public class RemoveCalculation : ICommand
     {

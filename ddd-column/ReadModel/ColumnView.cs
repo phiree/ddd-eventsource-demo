@@ -12,8 +12,8 @@ namespace ddd_column.ReadModel
         , IEventHandler<CalculationAdded>
         , IEventHandler<CalculationRemoved>
     {
-        private readonly IReadRepository<ColumnDTO> _repository;
-        public ColumnView(IReadRepository<ColumnDTO> repository)
+        private readonly IRepository<ColumnDTO> _repository;
+        public ColumnView(IRepository<ColumnDTO> repository)
         {
             _repository = repository;
         }

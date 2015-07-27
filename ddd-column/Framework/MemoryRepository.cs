@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace ddd_column.Framework
 {
-    public class MemoryReadRepository<T> : IReadRepository<T>
+    public class MemoryRepository<T> : IRepository<T>
         where T : IKeyedObject
     {
         private readonly ConcurrentDictionary<Guid, string> _serializedEntities = new ConcurrentDictionary<Guid, string>();

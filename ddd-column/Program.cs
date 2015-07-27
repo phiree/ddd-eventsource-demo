@@ -12,8 +12,8 @@ namespace ddd_column
 {
     class Program
     {
-        private static IReadRepository<ColumnDTO> _columnReadRepository;
-        private static IReadRepository<CalculationDTO> _calculationReadRepository;
+        private static IRepository<ColumnDTO> _columnRepository;
+        private static IRepository<CalculationDTO> _calculationRepository;
         private static IEventStore _eventStore;
 
         private const int CommandsPerProfileBatch = 2000;
@@ -33,10 +33,10 @@ namespace ddd_column
                 : CreateNonSnapshottingRepository();
 
             ColumnCommandHandler commandHandler = new ColumnCommandHandler(eventSourcedRepository);
-            _columnReadRepository = new MemoryReadRepository<ColumnDTO>();
-            _calculationReadRepository = new MemoryReadRepository<CalculationDTO>();
-            ColumnView columnView = new ColumnView(_columnReadRepository);
-            CalculationView calculationView = new CalculationView(_calculationReadRepository);
+            _columnRepository = new MemoryRepository<ColumnDTO>();
+            _calculationRepository = new MemoryRepository<CalculationDTO>();
+            ColumnView columnView = new ColumnView(_columnRepository);
+            CalculationView calculationView = new CalculationView(_calculationRepository);
 
             //bus.Subscribe<IEvent>(ev => _log.Information("New Event: {@Event}", ev));
 
@@ -54,7 +54,6 @@ namespace ddd_column
             bus.Subscribe<CalculationOperatorChanged>(calculationView.Handle);
 
             PerformSomeActions(commandHandler);
-            Thread.Sleep(100);
             ShowReadModel();
 
             PerformLotsOfActions(commandHandler);
@@ -68,13 +67,13 @@ namespace ddd_column
         private static IEventSourcedRepository<Column> CreateSnapshottingRepository(int eventsPerSnapshot)
         {
             Func<Guid, IEnumerable<IEvent>, Column> createColumn = ((id, events) => new Column(id, events));
-            MemoryReadRepository<ColumnSnapshot> snapshotRepository = new MemoryReadRepository<ColumnSnapshot>();
+            MemoryRepository<ColumnSnapshot> snapshotRepository = new MemoryRepository<ColumnSnapshot>();
             return new SnapshottingEventSourcedRepository<Column, ColumnSnapshot>(createColumn, _eventStore, snapshotRepository, Column.Snapshotter, eventsPerSnapshot);
         }
 
         private static void PerformLotsOfActions(ColumnCommandHandler commandHandler)
         {
-            var randomRunner = new RandomCommandRunner(Enumerable.Range(1, ColumnCount).Select(i => Some.Guid()), commandHandler, _columnReadRepository);
+            var randomRunner = new RandomCommandRunner(Enumerable.Range(1, ColumnCount).Select(i => Some.Guid()), commandHandler, _columnRepository);
 
             for (var i = 0; i < NumProfileIterations; i++)
             {
@@ -161,7 +160,7 @@ namespace ddd_column
 
         private static void ShowReadModel()
         {
-            foreach (var column in _columnReadRepository.All.ToList())
+            foreach (var column in _columnRepository.All.ToList())
             {
                 Console.WriteLine("SQL for {0}", column.Id);
                 Console.WriteLine("  CREATE COLUMN `{0}` ({1}){2};", column.Name, column.DataType, column.IsPrimary
@@ -177,7 +176,7 @@ namespace ddd_column
 
                     foreach (var calcId in calculations.ToList())
                     {
-                        var calc = _calculationReadRepository.Get(calcId);
+                        var calc = _calculationRepository.Get(calcId);
                         var operatorAsString = calc.Operator == Operator.Add
                             ? "+"
                             : calc.Operator == Operator.Divide
