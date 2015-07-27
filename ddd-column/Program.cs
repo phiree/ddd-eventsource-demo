@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ddd_column.Commands;
 using ddd_column.Domain;
 using ddd_column.Events;
@@ -15,15 +16,19 @@ namespace ddd_column
         private static IReadRepository<CalculationDTO> _calculationReadRepository;
         private static IEventStore _eventStore;
 
+        private const int CommandsPerProfileBatch = 5000;
+        private const int ColumnCount = 100;
+        private const int NumProfileIterations = 50;
+        private const int EventsPerSnapshot = 10;
+
         static void Main(string[] args)
         {
             EventBus bus = new EventBus();
             _eventStore = new MemoryEventStore(bus);
 
-            //IEventSourcedRepository<Column> eventSourcedRepository = new EventSourcedRepository<Column>(((id, events) => new Column(id, events)), _eventStore);
-            Func<Guid, IEnumerable<IEvent>, Column> createColumn = ((id, events) => new Column(id, events));
-            var snapshotRepository = new MemoryReadRepository<ISnapshot<Column>>();
-            IEventSourcedRepository<Column> eventSourcedRepository = new SnapshottingEventSourcedRepository<Column>(createColumn, _eventStore, snapshotRepository, Column.Snapshotter);
+            IEventSourcedRepository<Column> eventSourcedRepository = true
+                ? CreateNonSnapshottingRepository()
+                : CreateSnapshottingRepository(EventsPerSnapshot);
 
             ColumnCommandHandler commandHandler = new ColumnCommandHandler(eventSourcedRepository);
             _columnReadRepository = new MemoryReadRepository<ColumnDTO>();
@@ -47,22 +52,32 @@ namespace ddd_column
             bus.Subscribe<CalculationOperatorChanged>(calculationView.Handle);
 
             PerformSomeActions(commandHandler);
+            Thread.Sleep(100);
             ShowReadModel();
 
             PerformLotsOfActions(commandHandler);
         }
 
-        private static int _commandsPerBatch = 5000;
-        private static int _columnCount = 100;
-
-        public static void PerformLotsOfActions(ColumnCommandHandler commandHandler)
+        private static EventSourcedRepository<Column> CreateNonSnapshottingRepository()
         {
-            var randomRunner = new RandomCommandRunner(Enumerable.Range(1, _columnCount).Select(i => Some.Guid()), commandHandler);
+            return new EventSourcedRepository<Column>(((id, events) => new Column(id, events)), _eventStore);
+        }
 
-            for (var i = 0; i < 20; i++)
+        private static IEventSourcedRepository<Column> CreateSnapshottingRepository(int eventsPerSnapshot)
+        {
+            Func<Guid, IEnumerable<IEvent>, Column> createColumn = ((id, events) => new Column(id, events));
+            MemoryReadRepository<ColumnSnapshot> snapshotRepository = new MemoryReadRepository<ColumnSnapshot>();
+            return new SnapshottingEventSourcedRepository<Column, ColumnSnapshot>(createColumn, _eventStore, snapshotRepository, Column.Snapshotter, eventsPerSnapshot);
+        }
+
+        private static void PerformLotsOfActions(ColumnCommandHandler commandHandler)
+        {
+            var randomRunner = new RandomCommandRunner(Enumerable.Range(1, ColumnCount).Select(i => Some.Guid()), commandHandler, _columnReadRepository);
+
+            for (var i = 0; i < NumProfileIterations; i++)
             {
-                var results = randomRunner.RunSomeCommands(_commandsPerBatch);
-                Console.WriteLine("{0} commands: {1} succeeded, {2} failed", results.Total, results.SuccessCount, results.FailureCount);
+                var results = randomRunner.RunSomeCommands(CommandsPerProfileBatch);
+                Console.WriteLine("{0} commands: {1} succeeded, {2} failed, {3} conflicts", results.Total, results.SuccessCount, results.FailureCount, results.ConflictCount);
                 Console.WriteLine("  {0} commands per second", results.CommandsPerSecond);
                 Console.WriteLine();
             }

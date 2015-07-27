@@ -20,7 +20,7 @@ namespace ddd_column.Domain
     {
         private DataType _dataType;
         private bool _isPrimary;
-        private readonly CalculationCollection _calculations = new CalculationCollection();
+        private ImmutableKeyedCollection<Guid, Calculation> _calculations = new ImmutableKeyedCollection<Guid, Calculation>(c => c.Id);
 
         public Column(Guid id, IEnumerable<IEvent> initialEvents)
             : base(id, initialEvents) { }
@@ -97,7 +97,7 @@ namespace ddd_column.Domain
 
         public void Apply(CalculationAdded @event)
         {
-            _calculations.Add(new Calculation(this, @event.CalculationId, @event));
+            _calculations = _calculations.Add(new Calculation(this, @event.CalculationId, @event));
         }
 
         public void RemoveCalculation(Guid calculationId)
@@ -107,7 +107,7 @@ namespace ddd_column.Domain
 
         public void Apply(CalculationRemoved @event)
         {
-            _calculations.Remove(@event.CalculationId);
+            _calculations = _calculations.Remove(@event.CalculationId);
         }
 
         public void ChangeOperator(Guid calculationId, Operator op)
@@ -139,16 +139,16 @@ namespace ddd_column.Domain
             _calculations[@event.CalculationId].Apply(@event);
         }
 
-        public static ISnapshotter<Column> Snapshotter
+        public static ISnapshotter<Column, ColumnSnapshot> Snapshotter
         {
             get { return new ColumnSnapshotter(); }
         }
 
-        private class ColumnSnapshotter : ISnapshotter<Column>
+        private class ColumnSnapshotter : ISnapshotter<Column, ColumnSnapshot>
         {
             public int SchemaVersion { get { return 1; } }
 
-            public ISnapshot<Column> TakeSnapshot(Column column)
+            public ColumnSnapshot TakeSnapshot(Column column)
             {
                 return new ColumnSnapshot(column.Id, column.CommittedVersion, SchemaVersion)
                 {
@@ -158,17 +158,15 @@ namespace ddd_column.Domain
                 };
             }
 
-            public Column FromSnapshot(ISnapshot<Column> snapshot)
+            public Column FromSnapshot(ColumnSnapshot snapshot)
             {
-                var s = (ColumnSnapshot)snapshot;
-                var column = new Column(snapshot.Id, Enumerable.Empty<IEvent>())
+                Column column = new Column(snapshot.Id, Enumerable.Empty<IEvent>())
                 {
-                    _isPrimary = s.IsPrimary,
-                    _dataType = s.DataType
+                    _isPrimary = snapshot.IsPrimary,
+                    _dataType = snapshot.DataType
                 };
 
-                foreach (var calculation in s.Calculations)
-                    column._calculations.Add(calculation);
+                column._calculations = snapshot.Calculations;
 
                 column.Commit(snapshot.Version);
 
@@ -190,7 +188,7 @@ namespace ddd_column.Domain
 
         public bool IsPrimary { get; set; }
 
-        public CalculationCollection Calculations { get; set; }
+        public ImmutableKeyedCollection<Guid, Calculation> Calculations { get; set; }
 
         public Guid Id { get; private set; }
 
