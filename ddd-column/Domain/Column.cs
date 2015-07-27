@@ -154,7 +154,7 @@ namespace ddd_column.Domain
                 {
                     DataType = column._dataType,
                     IsPrimary = column._isPrimary,
-                    Calculations = column._calculations
+                    Calculations = column._calculations.ToList()
                 };
             }
 
@@ -166,7 +166,7 @@ namespace ddd_column.Domain
                     _dataType = snapshot.DataType
                 };
 
-                column._calculations = snapshot.Calculations;
+                column._calculations = ImmutableKeyedCollection<Guid, Calculation>.Create(item => item.Id, snapshot.Calculations);
 
                 column.Commit(snapshot.Version);
 
@@ -188,7 +188,7 @@ namespace ddd_column.Domain
 
         public bool IsPrimary { get; set; }
 
-        public ImmutableKeyedCollection<Guid, Calculation> Calculations { get; set; }
+        public List<Calculation> Calculations { get; set; }
 
         public Guid Id { get; private set; }
 
