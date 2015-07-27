@@ -138,5 +138,63 @@ namespace ddd_column.Domain
         {
             _calculations[@event.CalculationId].Apply(@event);
         }
+
+        public static ISnapshotter<Column> Snapshotter
+        {
+            get { return new ColumnSnapshotter(); }
+        }
+
+        private class ColumnSnapshotter : ISnapshotter<Column>
+        {
+            public int SchemaVersion { get { return 1; } }
+
+            public ISnapshot<Column> TakeSnapshot(Column column)
+            {
+                return new ColumnSnapshot(column.Id, column.CommittedVersion, SchemaVersion)
+                {
+                    DataType = column._dataType,
+                    IsPrimary = column._isPrimary,
+                    Calculations = column._calculations
+                };
+            }
+
+            public Column FromSnapshot(ISnapshot<Column> snapshot)
+            {
+                var s = (ColumnSnapshot)snapshot;
+                var column = new Column(snapshot.Id, Enumerable.Empty<IEvent>())
+                {
+                    _isPrimary = s.IsPrimary,
+                    _dataType = s.DataType
+                };
+
+                foreach (var calculation in s.Calculations)
+                    column._calculations.Add(calculation);
+
+                column.Commit(snapshot.Version);
+
+                return column;
+            }
+        }
+    }
+
+    public class ColumnSnapshot : ISnapshot<Column>
+    {
+        public ColumnSnapshot(Guid id, int version, int schemaVersion)
+        {
+            Id = id;
+            Version = version;
+            SchemaVersion = schemaVersion;
+        }
+
+        public DataType DataType { get; set; }
+
+        public bool IsPrimary { get; set; }
+
+        public CalculationCollection Calculations { get; set; }
+
+        public Guid Id { get; private set; }
+
+        public int Version { get; private set; }
+        public int SchemaVersion { get; private set; }
     }
 }

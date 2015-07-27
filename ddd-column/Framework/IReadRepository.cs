@@ -10,5 +10,7 @@ namespace ddd_column.Framework
         T Get(Guid id);
         void Save(T entity);
         void Remove(Guid id);
+
+        bool Exists(Guid id);
     }
 }

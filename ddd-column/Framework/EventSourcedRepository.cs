@@ -5,7 +5,7 @@ using ddd_column.Events;
 namespace ddd_column.Framework
 {
     public class EventSourcedRepository<T> : IEventSourcedRepository<T>
-        where T : AggregateRoot
+            where T : AggregateRoot
     {
         private readonly Func<Guid, IEnumerable<IEvent>, T> _create;
         private readonly IEventStore _eventStore;
@@ -18,7 +18,7 @@ namespace ddd_column.Framework
 
         public T Get(Guid id)
         {
-            IEnumerable<IEvent> events = _eventStore.EventsFor(id);
+            IEnumerable<IEvent> events = _eventStore.EventsFor(id, 0);
             return _create(id, events);
         }
 

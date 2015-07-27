@@ -58,6 +58,7 @@
     <Compile Include="Framework\IEventStore.cs" />
     <Compile Include="Framework\IKeyedObject.cs" />
     <Compile Include="Framework\IReadRepository.cs" />
+    <Compile Include="Framework\SnapshottingEventSourcedRepository.cs" />
     <Compile Include="Framework\Some.cs" />
     <Compile Include="RandomCommandRunner.cs" />
     <Compile Include="ReadModel\CalculationDTO.cs" />

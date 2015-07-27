@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ddd_column.Commands;
 using ddd_column.Domain;
 using ddd_column.Events;
 using ddd_column.Framework;
 using ddd_column.ReadModel;
-using Serilog;
 
 namespace ddd_column
 {
@@ -14,17 +14,16 @@ namespace ddd_column
         private static IReadRepository<ColumnDTO> _columnReadRepository;
         private static IReadRepository<CalculationDTO> _calculationReadRepository;
         private static IEventStore _eventStore;
-        private static ILogger _log;
 
         static void Main(string[] args)
         {
-            _log = Log.Logger = new LoggerConfiguration()
-                .WriteTo.ColoredConsole()
-                .CreateLogger();
-
             EventBus bus = new EventBus();
             _eventStore = new MemoryEventStore(bus);
-            EventSourcedRepository<Column> eventSourcedRepository = new EventSourcedRepository<Column>(((id, events) => new Column(id, events)), _eventStore);
+
+            //IEventSourcedRepository<Column> eventSourcedRepository = new EventSourcedRepository<Column>(((id, events) => new Column(id, events)), _eventStore);
+            Func<Guid, IEnumerable<IEvent>, Column> createColumn = ((id, events) => new Column(id, events));
+            var snapshotRepository = new MemoryReadRepository<ISnapshot<Column>>();
+            IEventSourcedRepository<Column> eventSourcedRepository = new SnapshottingEventSourcedRepository<Column>(createColumn, _eventStore, snapshotRepository, Column.Snapshotter);
 
             ColumnCommandHandler commandHandler = new ColumnCommandHandler(eventSourcedRepository);
             _columnReadRepository = new MemoryReadRepository<ColumnDTO>();
@@ -54,7 +53,7 @@ namespace ddd_column
         }
 
         private static int _commandsPerBatch = 5000;
-        private static int _columnCount = 1000;
+        private static int _columnCount = 100;
 
         public static void PerformLotsOfActions(ColumnCommandHandler commandHandler)
         {
@@ -173,14 +172,6 @@ namespace ddd_column
                     }
                     Console.WriteLine();
                 }
-            }
-        }
-
-        private static void RenderEvents(Guid id)
-        {
-            foreach (var e in _eventStore.EventsFor(id))
-            {
-                Console.WriteLine("Event {0}", e.GetType().Name);
             }
         }
     }

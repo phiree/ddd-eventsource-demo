@@ -25,14 +25,11 @@ namespace ddd_column.Framework
 
         public void Commit(int newVersion)
         {
-            if (newVersion != UncommitedEvents.Count + CommittedVersion)
-                throw new InvalidOperationException("Should never happen");
-
             _uncommitedEvents.Clear();
             CommittedVersion = newVersion;
         }
 
-        private void ApplyExisting(IEvent @event)
+        public void ApplyExisting(IEvent @event)
         {
             ((dynamic)this).Apply((dynamic)@event);
             CommittedVersion++;

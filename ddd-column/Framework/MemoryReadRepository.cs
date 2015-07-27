@@ -33,5 +33,10 @@ namespace ddd_column.Framework
             T entity;
             _entities.TryRemove(id, out entity);
         }
+
+        public bool Exists(Guid id)
+        {
+            return _entities.ContainsKey(id);
+        }
     }
 }

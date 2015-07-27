@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using ddd_column.Events;
 
 namespace ddd_column.Framework
@@ -17,11 +18,14 @@ namespace ddd_column.Framework
             _eventBus = eventBus;
         }
 
-        public IEnumerable<IEvent> EventsFor(Guid id)
+        public IEnumerable<IEvent> EventsFor(Guid id, int fromVersion)
         {
             AppendOnlyList<IEvent> events;
             if (_events.TryGetValue(id, out events))
-                return events;
+                return events.Skip(fromVersion);
+
+            if (fromVersion != 0)
+                throw new IndexOutOfRangeException();
 
             return new List<IEvent>();
         }
