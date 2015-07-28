@@ -78,6 +78,7 @@ namespace ddd_column
             for (var i = 0; i < NumProfileIterations; i++)
             {
                 var results = randomRunner.RunSomeCommands(CommandsPerProfileBatch);
+                Console.WriteLine("{0} Columns, {1} Calculations", _columnRepository.All.Count(), _calculationRepository.All.Count());
                 Console.WriteLine("{0} commands: {1} succeeded, {2} failed, {3} conflicts", results.Total, results.SuccessCount, results.FailureCount, results.ConflictCount);
                 Console.WriteLine("  {0} commands per second", results.CommandsPerSecond);
                 Console.WriteLine();
