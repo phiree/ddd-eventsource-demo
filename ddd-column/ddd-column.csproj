@@ -100,7 +100,6 @@
     <Compile Include="Commands\MakeColumnPrimary.cs" />
     <Compile Include="Commands\RenameColumn.cs" />
     <Compile Include="Domain\Calculation.cs" />
-    <Compile Include="Framework\ImmutableKeyedCollection.cs" />
     <Compile Include="Domain\Column.cs" />
     <Compile Include="Events\ColumnDataTypeChanged.cs" />
     <Compile Include="Events\ColumnCreated.cs" />

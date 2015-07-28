@@ -20,8 +20,8 @@ namespace ddd_column
         private const int ColumnCount = 100;
         private const int NumProfileIterations = 50;
 
-        private const bool UseSnapshotting = false;
-        private const int EventsPerSnapshot = 10;
+        private const bool UseSnapshotting = true;
+        private const int EventsPerSnapshot = 100;
 
         static void Main(string[] args)
         {

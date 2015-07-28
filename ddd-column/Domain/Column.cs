@@ -20,7 +20,7 @@ namespace ddd_column.Domain
     {
         private DataType _dataType;
         private bool _isPrimary;
-        private ImmutableKeyedCollection<Guid, Calculation> _calculations = new ImmutableKeyedCollection<Guid, Calculation>(c => c.Id);
+        private Dictionary<Guid, Calculation> _calculations = new Dictionary<Guid, Calculation>();
 
         public Column(Guid id, IEnumerable<IEvent> initialEvents)
             : base(id, initialEvents) { }
@@ -50,8 +50,8 @@ namespace ddd_column.Domain
             if (_isPrimary)
                 ApplyNew(this, new ColumnPrimaryCleared(Id));
 
-            foreach (Calculation calculation in _calculations)
-                ApplyNew(this, new CalculationRemoved(Id, calculation.Id));
+            foreach (Guid calculationId in _calculations.Keys)
+                ApplyNew(this, new CalculationRemoved(Id, calculationId));
 
             ApplyNew(this, new ColumnDataTypeChanged(Id, newDataType));
         }
@@ -97,7 +97,7 @@ namespace ddd_column.Domain
 
         public void Apply(CalculationAdded @event)
         {
-            _calculations = _calculations.Add(new Calculation(this, @event.CalculationId, @event));
+            _calculations.Add(@event.CalculationId, new Calculation(this, @event.CalculationId, @event));
         }
 
         public void RemoveCalculation(Guid calculationId)
@@ -107,7 +107,7 @@ namespace ddd_column.Domain
 
         public void Apply(CalculationRemoved @event)
         {
-            _calculations = _calculations.Remove(@event.CalculationId);
+            _calculations.Remove(@event.CalculationId);
         }
 
         public void ChangeOperator(Guid calculationId, Operator op)
@@ -154,7 +154,7 @@ namespace ddd_column.Domain
                 {
                     DataType = column._dataType,
                     IsPrimary = column._isPrimary,
-                    Calculations = column._calculations.Select(CalculationSnapshot).ToList()
+                    Calculations = column._calculations.Values.Select(CalculationSnapshot).ToList()
                 };
             }
 
@@ -177,7 +177,7 @@ namespace ddd_column.Domain
                 };
 
                 List<Calculation> calculations = snapshot.Calculations.Select(c => Calculation.FromSnapshot(column, c)).ToList();
-                column._calculations = ImmutableKeyedCollection<Guid, Calculation>.Create(item => item.Id, calculations);
+                column._calculations = calculations.ToDictionary(c => c.Id);
 
                 column.Commit(snapshot.Version);
 

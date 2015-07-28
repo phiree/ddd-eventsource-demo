@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -153,8 +154,13 @@ namespace ddd_column
             };
         }
 
-        private static ICommand AddCalculation(Guid columnId)
+        private ICommand AddCalculation(Guid columnId)
         {
+            ColumnDTO column = _columnRepository.Get(columnId);
+
+            if (column.Calculations.Count > 10)
+                return RemoveCalculation(columnId);
+
             return new AddCalculation
             {
                 Id = columnId,
@@ -166,25 +172,25 @@ namespace ddd_column
 
         private ICommand ChangeOperand(Guid columnId)
         {
-            //ColumnDTO column = _columnRepository.Get(columnId);
-            //
-            //if (!column.Calculations.Any() || Some.RandomInteger(100) < 10)
-            //    return AddOrRemoveCalculation(column);
+            ColumnDTO column = _columnRepository.Get(columnId);
+            
+            if (!column.Calculations.Any() || Some.RandomInteger(100) < 10)
+                return AddOrRemoveCalculation(column);
 
             return new ChangeOperand
             {
                 Id = columnId,
-                CalculationId = Guid.NewGuid(),// Some.ElementIn(column.Calculations),
+                CalculationId = Some.ElementIn(column.Calculations),
                 Operand = Some.Integer(),
             };
         }
 
         private ICommand ChangeOperator(Guid columnId)
         {
-            //ColumnDTO column = _columnRepository.Get(columnId);
-            //
-            //if (!column.Calculations.Any() || Some.RandomInteger(100) < 10)
-            //    return AddOrRemoveCalculation(column);
+            ColumnDTO column = _columnRepository.Get(columnId);
+
+            if (!column.Calculations.Any() || Some.RandomInteger(100) < 10)
+                return AddOrRemoveCalculation(column);
 
             return new ChangeOperator
             {
@@ -196,15 +202,15 @@ namespace ddd_column
 
         private ICommand RemoveCalculation(Guid columnId)
         {
-            //ColumnDTO column = _columnRepository.Get(columnId);
-            //
-            //if (!column.Calculations.Any())
-            //    return AddCalculation(columnId);
+            ColumnDTO column = _columnRepository.Get(columnId);
+            
+            if (!column.Calculations.Any())
+                return AddCalculation(columnId);
 
             return new RemoveCalculation
             {
                 Id = columnId,
-                CalculationId = Guid.NewGuid()//Some.ElementIn(column.Calculations)
+                CalculationId = Guid.NewGuid()
             };
         }
 
