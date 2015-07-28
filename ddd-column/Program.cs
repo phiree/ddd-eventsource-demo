@@ -21,7 +21,7 @@ namespace ddd_column
         private const int NumProfileIterations = 50;
 
         private const bool UseSnapshotting = true;
-        private const int EventsPerSnapshot = 100;
+        private const int EventsPerSnapshot = 20;
 
         static void Main(string[] args)
         {
@@ -75,6 +75,8 @@ namespace ddd_column
         {
             var randomRunner = new RandomCommandRunner(Enumerable.Range(1, ColumnCount).Select(i => Some.Guid()), commandHandler, _columnRepository);
 
+            List<int> averageFinalCommandsPerSecond= new List<int>();
+
             for (var i = 0; i < NumProfileIterations; i++)
             {
                 var results = randomRunner.RunSomeCommands(CommandsPerProfileBatch);
@@ -82,7 +84,12 @@ namespace ddd_column
                 Console.WriteLine("{0} commands: {1} succeeded, {2} failed, {3} conflicts", results.Total, results.SuccessCount, results.FailureCount, results.ConflictCount);
                 Console.WriteLine("  {0} commands per second", results.CommandsPerSecond);
                 Console.WriteLine();
+
+                if (i > NumProfileIterations - 5)
+                    averageFinalCommandsPerSecond.Add(results.CommandsPerSecond);
             }
+
+            Console.WriteLine("Average: {0:#} Commands Per Second", averageFinalCommandsPerSecond.Average());
         }
 
         private static void PerformSomeActions(ColumnCommandHandler commandHandler)
